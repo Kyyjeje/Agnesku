@@ -1,0 +1,269 @@
+/* ============================================================
+   PIN GATE + BLOOM REVEAL — replaces the old canvas/GSAP intro.
+   Two plain, independent layers, no animation library involved:
+
+     1. #pinGate   — a PIN form with individually-lit digit boxes
+                     (same interaction language as the "Model 5"
+                     gate: one hidden numeric input drives visible
+                     boxes with a dot per filled digit), visible the
+                     instant the page paints (pure CSS, no JS needed
+                     to show it).
+     2. #bloomVeil — created hidden; only switched on once the PIN
+                     is correct. Darkens the screen, showers CSS-
+                     only flower-emoji spans down the viewport, shows
+                     a short line of text, then fades itself out
+                     while the homepage becomes interactive.
+
+   Both are plain DOM + CSS transitions/animations — deliberately no
+   canvas, no GSAP dependency — so this layer can't be taken down by
+   a slow/blocked CDN request the way the old intro's engine could,
+   and the native numeric keyboard mobile browsers already know how
+   to summon (inputmode="numeric") replaces the old on-screen keypad,
+   which is the other half of "unreliable on mobile".
+============================================================ */
+
+/* locked by default, in markup, before any JS runs — released by
+   js/pin-intro.js (or its watchdog) once the visitor is through.
+   Both html AND body need this: iOS Safari's actual scrolling
+   element is <html> (document.scrollingElement), not <body>, so
+   overflow:hidden on body alone still allows elastic rubber-band
+   overscroll of the whole document. That bounce doesn't just feel
+   wrong — it can visibly detach or clip position:fixed content (the
+   PIN card) mid-gesture, which is what reads as "PIN input missing"
+   on a real phone even though the element is present and correctly
+   styled the entire time. */
+html.pin-locked, body.pin-locked{
+  overflow:hidden; height:100vh; height:100dvh; overscroll-behavior:none;
+}
+
+/* ---------------- PIN gate ---------------- */
+.pin-gate{
+  position:fixed; inset:0; z-index:300;
+  display:flex; align-items:center; justify-content:center;
+  padding: max(var(--pad-x), env(safe-area-inset-top, 0px)) max(var(--pad-x), env(safe-area-inset-right, 0px)) max(var(--pad-x), env(safe-area-inset-bottom, 0px)) max(var(--pad-x), env(safe-area-inset-left, 0px));
+  background: radial-gradient(120% 100% at 50% 45%, #2a1520 0%, #170d13 70%);
+  transition: opacity .8s var(--ease-soft), filter .8s var(--ease-soft);
+  overflow:hidden;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+.pin-gate.leaving{ opacity:0; filter:blur(14px); pointer-events:none; }
+
+/* soft ambient glow behind the card, echoing the ambient garden glow
+   used on the rest of the site instead of a flat gradient plate */
+.pin-gate::before,
+.pin-gate::after{
+  content:''; position:absolute; border-radius:50%; pointer-events:none;
+  filter: blur(70px);
+}
+.pin-gate::before{
+  width:46vw; height:46vw; max-width:520px; max-height:520px;
+  top:-10%; left:-8%;
+  background: radial-gradient(circle, rgba(232,143,163,.28), transparent 70%);
+  animation: pinGlowDrift 18s var(--ease-lux) infinite;
+}
+.pin-gate::after{
+  width:38vw; height:38vw; max-width:440px; max-height:440px;
+  bottom:-12%; right:-6%;
+  background: radial-gradient(circle, rgba(217,171,114,.18), transparent 70%);
+  animation: pinGlowDrift 22s var(--ease-lux) infinite reverse;
+}
+@keyframes pinGlowDrift{
+  0%,100%{ transform: translate(0,0) scale(1); }
+  50%{ transform: translate(3vw,2vh) scale(1.08); }
+}
+
+.pin-card{
+  position:relative; z-index:1;
+  width:100%; max-width:380px; text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding: clamp(28px,5vw,40px) clamp(22px,5vw,32px) clamp(24px,5vw,30px);
+  border-radius: var(--r-lg);
+  background: rgba(247,236,227,.05);
+  border: 1px solid rgba(247,236,227,.14);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 30px 70px rgba(0,0,0,.45);
+  animation: pinCardIn .9s var(--ease-soft) both;
+}
+@keyframes pinCardIn{
+  from{ opacity:0; transform: translateY(22px) scale(.96); }
+  to{ opacity:1; transform: translateY(0) scale(1); }
+}
+
+.pin-mark{
+  width:52px; height:52px; margin-bottom:6px;
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+  color: var(--rose-soft);
+  background: rgba(232,143,163,.12);
+  border: 1px solid rgba(247,236,227,.16);
+  filter: drop-shadow(0 0 16px rgba(232,143,163,.4));
+  animation: pinMarkFloat 3.4s var(--ease-lux) infinite;
+}
+.pin-mark svg{ width:24px; height:24px; }
+@keyframes pinMarkFloat{
+  0%,100%{ transform: translateY(0); }
+  50%{ transform: translateY(-5px); }
+}
+
+.pin-eyebrow{ justify-content:center; margin-bottom:2px; }
+.pin-title{
+  font-family:var(--display); font-weight:400; color:var(--ivory);
+  font-size:clamp(1.6rem, 5.4vw, 2.1rem);
+}
+.pin-hint{
+  font-family:var(--script); font-style:italic; color:var(--rose-soft);
+  font-size:clamp(.98rem, 3vw, 1.1rem); margin: 4px 0 8px; max-width:30ch;
+}
+
+.pin-form{
+  display:flex; flex-direction:column; align-items:center; gap:18px; width:100%;
+}
+
+/* ---- digit boxes, same interaction language as Model 5's gate:
+   one transparent, real <input> sits over the boxes and drives the
+   OS numeric keyboard; the boxes themselves are purely decorative,
+   lighting up with a dot as each digit lands ---- */
+.pin-digits{
+  position:relative;
+  display:flex; justify-content:center;
+  gap:clamp(8px, 2.4vw, 14px);
+}
+.pin-digit{
+  width:clamp(40px, 11vw, 52px); height:clamp(46px, 12.5vw, 58px);
+  border-radius: var(--r-sm);
+  background: rgba(247,236,227,.05);
+  border: 1.5px solid rgba(247,236,227,.2);
+  display:flex; align-items:center; justify-content:center;
+  transition: border-color .3s var(--ease-soft), box-shadow .3s var(--ease-soft), background .3s var(--ease-soft);
+}
+.pin-digit__dot{
+  width:9px; height:9px; border-radius:50%;
+  background: var(--rose-bright);
+  box-shadow: 0 0 10px rgba(255,159,192,.7);
+  transform: scale(0);
+  transition: transform .25s var(--ease-soft);
+}
+.pin-digit.is-filled .pin-digit__dot{ transform:scale(1); }
+.pin-digit.is-active{
+  border-color: var(--rose-soft);
+  box-shadow: 0 0 0 3px rgba(232,143,163,.16);
+  background: rgba(232,143,163,.08);
+}
+
+.pin-hidden-input{
+  position:absolute; inset:0; width:100%; height:100%;
+  opacity:0; border:none; outline:none; background:transparent;
+  color:transparent; caret-color:transparent;
+  font-size:16px; /* prevents iOS auto-zoom on focus */
+  z-index:2; cursor:default;
+}
+
+.pin-submit{
+  display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+  width:100%;
+  font-size:.75rem; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--ink); background: linear-gradient(135deg, var(--rose-bright), var(--rose));
+  border-radius:var(--r-pill);
+  padding:15px 22px;
+  font-weight:600;
+  box-shadow: 0 10px 30px rgba(232,143,163,.35);
+  transition: transform var(--dur-fast) var(--ease-soft), box-shadow var(--dur-fast) var(--ease-soft);
+}
+.pin-submit:hover{ transform: translateY(-2px); box-shadow: 0 14px 36px rgba(232,143,163,.45); }
+.pin-submit:active{ transform: translateY(0) scale(.97); }
+.pin-submit svg{ transition: transform .3s var(--ease-soft); }
+.pin-submit:hover svg{ transform: translateX(2px); }
+
+.pin-error{
+  display:inline-flex; align-items:center; gap:.4rem;
+  margin-top:4px;
+  padding:.5rem .9rem;
+  border-radius: var(--r-pill);
+  background: rgba(255,110,95,.12);
+  border:1px solid rgba(255,110,95,.32);
+  color:#ffb3a8;
+  font-size:.8rem; font-weight:500;
+  opacity:0; transform:translateY(-6px); pointer-events:none;
+  transition: opacity .35s var(--ease-soft), transform .35s var(--ease-soft);
+}
+.pin-error.is-visible{ opacity:1; transform:translateY(0); }
+.pin-error svg{ flex-shrink:0; }
+
+/* error / success states, mirrored onto the card so the whole gate
+   reacts, not just the boxes */
+@keyframes pinShake{
+  10%,90%{ transform:translateX(-1px); }
+  20%,80%{ transform:translateX(2px); }
+  30%,50%,70%{ transform:translateX(-6px); }
+  40%,60%{ transform:translateX(6px); }
+}
+.pin-card.is-error{ animation: pinShake .5s var(--ease-soft); }
+.pin-card.is-error .pin-digit{ border-color: rgba(255,110,95,.5); background: rgba(255,90,75,.06); }
+.pin-card.is-error .pin-digit__dot{ background:#ff8a7a; box-shadow:0 0 10px rgba(255,138,122,.7); }
+
+.pin-card.is-success{ animation: pinSuccessPulse .9s var(--ease-soft); }
+@keyframes pinSuccessPulse{
+  0%{ transform:scale(1); }
+  35%{ transform:scale(1.025); }
+  100%{ transform:scale(1); }
+}
+.pin-card.is-success .pin-digit{ border-color: var(--rose-bright); }
+.pin-card.is-success .pin-digit__dot{
+  background: linear-gradient(135deg, var(--rose-bright), var(--gold));
+  box-shadow: 0 0 14px rgba(217,171,114,.7);
+}
+
+/* ---------------- bloom reveal veil ---------------- */
+.bloom-veil{
+  position:fixed; inset:0; z-index:299;
+  overflow:hidden; pointer-events:none;
+  opacity:0;
+}
+.bloom-veil.on{ opacity:1; transition: opacity .6s var(--ease-soft); }
+.bloom-veil.fading{ opacity:0; transition: opacity 1.3s var(--ease-soft); }
+
+.bloom-veil-dark{
+  position:absolute; inset:0;
+  background: var(--bg-deep);
+  opacity:.94;
+  transition: opacity 1.6s var(--ease-soft);
+}
+.bloom-veil-dark.cleared{ opacity:0; }
+
+.bloom-flowers{
+  position:absolute; inset:0;
+}
+.bloom-flower{
+  position:absolute; top:-12%; left:0;
+  line-height:1; user-select:none;
+  animation-name: bloomFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+@keyframes bloomFall{
+  0%{   transform: translate(0, 0) rotate(0deg); }
+  50%{  transform: translate(var(--drift, 20px), 58vh) rotate(calc(var(--spin, 320deg) * .5)); }
+  100%{ transform: translate(0, 124vh) rotate(var(--spin, 320deg)); }
+}
+
+.bloom-text{
+  position:absolute; left:0; right:0; top:44%; text-align:center;
+  font-family:var(--script); font-style:italic; color:var(--rose-soft);
+  font-size:clamp(1.4rem, 4.5vw, 2.4rem);
+  text-shadow: 0 0 24px rgba(255,159,192,.4);
+  opacity:0; transform:translateY(10px);
+  transition: opacity 1s var(--ease-soft), transform 1s var(--ease-soft);
+}
+.bloom-text.on{ opacity:1; transform:translateY(0); }
+
+@media (max-width:480px){
+  .pin-card{ padding: 26px 20px 22px; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .pin-gate, .pin-card, .pin-mark, .bloom-veil, .bloom-veil-dark, .bloom-text{ animation:none !important; transition-duration:.3s !important; }
+  .pin-card.is-error{ transform:none; }
+  .bloom-flower{ animation-duration:7s !important; }
+}

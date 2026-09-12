@@ -1,0 +1,112 @@
+/* ============================================================
+   RESPONSIVE — tablet, mobile, landscape, ultrawide
+============================================================ */
+
+/* Ultrawide: keep the composition from stretching thin */
+@media (min-width: 1800px){
+  :root{ --max-w: 1560px; }
+  .hero-content{ max-width:840px; }
+  .press-field{ height:200vh; }
+}
+
+/* Tablet portrait / small laptop */
+@media (max-width: 1024px){
+  .press-card{ width:min(34vw,280px); }
+}
+
+/* Nav: seven spelled-out links + the logo + the chapter counter stop
+   comfortably fitting on one row below this width. Rather than hiding
+   the menu behind an icon, the bar becomes two rows: logo + chapter
+   counter stay on top, the SAME text links drop to their own row
+   directly beneath as a horizontally-scrollable strip — a proper,
+   readable, always-visible top nav, adapted for mobile, never
+   replaced by a toggle button. */
+@media (max-width: 900px){
+  :root{ --nav-h: 104px; }
+  .nav-bar{
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    row-gap: 8px;
+    height:auto;
+    padding-top: calc(env(safe-area-inset-top,0px) + 14px);
+    padding-bottom: 12px;
+  }
+  .nav-bar > .mark{ grid-column:1; grid-row:1; }
+  .nav-bar > .nav-chapter{ grid-column:2; grid-row:1; }
+  .nav-bar > .nav-links{
+    grid-column: 1 / -1; grid-row:2;
+    justify-self:stretch; width:100%;
+    justify-content:flex-start;
+    overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+    gap:20px; padding-bottom:2px;
+    /* soft fade at both edges hints there's more to scroll, without
+       a hard clip that reads as content being cut off */
+    mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 24px), transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 24px), transparent 100%);
+  }
+  .nav-links::-webkit-scrollbar{ display:none; }
+  .nav-links a{ padding:6px 1px; } /* bigger tap target, same look */
+  .bloom-toggle{ display:none !important; }
+}
+
+/* Tablet / large phone landscape */
+@media (max-width: 860px){
+  .field-notes{ gap: clamp(44px,8vh,80px); }
+}
+
+/* Phones */
+@media (max-width: 700px){
+  .mark{ font-size:1rem; }
+  .mark span{ display:none; }
+  .nav-chapter{ font-size:.6rem; gap:4px; }
+
+  .hero-content{ z-index:2; }
+  .scroll-cue{ position:static; margin-top:40px; max-width:100%; }
+  .scroll-cue{ writing-mode:horizontal-tb; gap:10px; }
+  .scroll-cue .stem{ width:40px; height:1px; background:linear-gradient(90deg,var(--rose-soft),transparent); }
+
+  /* Gallery becomes a snap-scroll strip — absolute overlap
+     layouts don't survive narrow viewports without overflow bugs */
+  .press-field{
+    height:auto; display:flex; gap:20px; overflow-x:auto; scroll-snap-type:x mandatory;
+    padding: 10px 6px 26px; margin-left:calc(-1 * var(--pad-x)); margin-right:calc(-1 * var(--pad-x)); padding-left:var(--pad-x); padding-right:var(--pad-x);
+    -webkit-overflow-scrolling:touch;
+  }
+  .press-card{
+    position:static; transform:none; width:74vw; max-width:300px; flex:0 0 auto;
+    scroll-snap-align:center;
+  }
+  .press-card:nth-child(even){ transform:rotate(2deg); }
+  .press-card:nth-child(odd){ transform:rotate(-2deg); }
+
+
+  .note{ max-width:none; }
+  .letter{ padding: 40px 4px; }
+  .letter-drop{ font-size:2.6rem; }
+  .dial-row{ justify-content:center; gap:14px; }
+  .dial{ flex-basis: calc(50% - 14px); max-width:none; }
+  .track-wave{ width:60px; }
+  .track-sub{ display:none; }
+  .finale-btn{ width:100%; text-align:center; }
+  .bloom-text{ padding:0 24px; }
+}
+
+/* Very small phones */
+@media (max-width: 380px){
+  .hero-name{ font-size:clamp(2.6rem,13vw,3.4rem); }
+  .dial{ flex-basis: calc(50% - 10px); }
+  .nav-chapter-sep, .nav-chapter-total{ display:none; }
+}
+
+/* Landscape phones (short viewport height) */
+@media (max-height: 480px) and (orientation: landscape){
+  .hero{ min-height:auto; padding-top:100px; padding-bottom:60px; }
+  .finale{ padding-top:100px; padding-bottom:100px; }
+  section{ padding-top:80px; padding-bottom:80px; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:.01ms !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
+}
+:focus-visible{ outline:2px solid var(--rose-bright); outline-offset:3px; }

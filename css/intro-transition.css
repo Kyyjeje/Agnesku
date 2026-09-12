@@ -1,0 +1,43 @@
+/* ============================================================
+   INTRO ENGINE — intro-transition.css
+   The curtain bloom-wipe and the overlay fade-out.
+   The JS handles opacity via GSAP; clip-path is CSS-only for
+   maximum compositing performance.
+============================================================ */
+
+/* ── Overlay fade (GSAP sets opacity directly) ───────────── */
+.ie-root {
+  will-change: opacity;
+}
+
+/* ── Curtain bloom-wipe ──────────────────────────────────── */
+/* Base state: full coverage via inset(0). The `.ie-curtain--bloom`
+   class (added by introTransition.begin()) triggers the animated
+   retraction to circle(0%) — a clip-path collapse that reads as
+   the garden blooming open from the centre outward.
+
+   clip-path on clip-path: GPU composited → no layout, no paint.
+   The duration here should match INTRO_CFG.transition.curtainDur. */
+.ie-curtain {
+  /* defined in intro-base.css — only the transition override here */
+}
+.ie-curtain--bloom {
+  transition: clip-path 1.3s cubic-bezier(0.22, 1, 0.36, 1);
+  clip-path: circle(0% at 50% 50%);
+}
+
+/* ── Hero content entry — reveals from within the bloom ─── */
+/* The page's existing .hero-content.reveal class triggers this.
+   We add a slightly faster/more present animation that matches
+   the bloom-wipe timing, so the hero feels like it grows out of
+   the same centre point the curtain collapsed into. */
+.hero-content.reveal {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  /* override the default transition from hero.css with one that
+     starts from a very slight upward-and-small state, matching the
+     bloom's centre-outward movement */
+  transition:
+    opacity  1.1s 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.1s 0.15s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}

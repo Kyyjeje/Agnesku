@@ -1,0 +1,634 @@
+/* ============================================================
+   DESIGN TOKENS — "In Full Bloom"
+   A twilight garden, not a template. Deep plum dusk rather than
+   pure black; one warm rose-gold bloom as the through-line.
+============================================================ */
+:root{
+  --bg-deep:      #170d13;
+  --bg-plum-2:    #331a29;
+  --rose:         #e88fa3;
+  --rose-soft:    #f0b9c4;
+  --rose-bright:  #ff9fc0;
+  --gold:         #d9ab72;
+  --sage:         #7c8f68;
+  --ivory:        #f7ece3;
+  --ivory-dim:    #e2d3ca;
+  --ink:          #170d13;
+
+  --display: 'Fraunces', serif;
+  --script:  'Instrument Serif', serif;
+  --body:    'Inter', sans-serif;
+
+  --ease-lux: cubic-bezier(.22,1,.36,1);
+  --ease-soft: cubic-bezier(.16,.84,.44,1);
+
+  /* one shared timing + radius scale so every card, button and
+     transition across the site reads as the same handwriting
+     instead of each section inventing its own numbers */
+  --dur-fast:  .28s;
+  --dur-med:   .45s;
+  --dur-slow:  .8s;
+  --r-sm:      4px;
+  --r-md:      10px;
+  --r-lg:      22px;
+  --r-pill:    100px;
+
+  /* fluid, clamped section rhythm — replaces raw vw so ultrawide
+     screens don't get absurd whitespace and small screens don't
+     get crushed */
+  --pad-x:     clamp(20px, 6vw, 96px);
+  --pad-y:     clamp(64px, 13vh, 160px);
+  --max-w:     1440px;
+  --nav-h:     clamp(64px, 9vh, 92px);
+}
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scroll-behavior:auto; }
+html, body{ width:100%; overflow-x:hidden; }
+body{
+  background: var(--bg-deep);
+  color: var(--ivory);
+  font-family: var(--body);
+  cursor: default;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+img{ display:block; max-width:100%; }
+a{ color:inherit; text-decoration:none; }
+button{ font-family:inherit; cursor:pointer; border:none; background:none; color:inherit; }
+::selection{ background: var(--rose); color: var(--ink); }
+svg{ display:block; }
+
+.eyebrow{
+  font-family: var(--body);
+  font-size: 0.7rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--rose-soft);
+  display:flex; align-items:center; gap:12px;
+}
+.eyebrow::before{
+  content:''; width:28px; height:1px; background:var(--rose-soft); opacity:.6; flex-shrink:0;
+}
+
+/* ============================================================
+   AMBIENT LAYERS — background, glow, grain, vignette
+   Stacking: glow(-2) < petal canvases(-1) < page content(1..) < nav(60+)
+   Nothing ambient sits above readable content.
+============================================================ */
+.garden-glow{
+  position:fixed; inset:-10%; z-index:-2; pointer-events:none;
+  background:
+    radial-gradient(38% 34% at 18% 12%, rgba(232,143,163,.16), transparent 60%),
+    radial-gradient(45% 40% at 88% 78%, rgba(217,171,114,.13), transparent 60%),
+    radial-gradient(30% 30% at 70% 15%, rgba(255,159,192,.10), transparent 60%);
+  filter: blur(10px);
+  animation: breathe 14s ease-in-out infinite alternate;
+  background-size: 130% 130%;
+}
+@keyframes breathe{
+  0%   { opacity:.75; background-position: 0% 0%; }
+  100% { opacity:1;   background-position: 8% 6%; }
+}
+
+#petal-bg, #petal-mid, #petal-fg{
+  position:fixed; inset:0; width:100vw; height:100vh;
+  pointer-events:none; transition: filter .6s ease;
+}
+#petal-bg{  z-index:-1; }
+#petal-mid{ z-index:0;  }
+#petal-fg{  z-index:5; mix-blend-mode:screen; opacity:.85; }
+/* the foreground layer is intentionally sparse — see JS tier
+   counts — so it accents but never masks text */
+
+.grain{
+  position:fixed; inset:0; z-index:6; pointer-events:none;
+  opacity:.03; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.vignette{
+  position:fixed; inset:0; z-index:6; pointer-events:none;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 45%, rgba(10,4,8,.5) 100%);
+}
+
+/* ============================================================
+   CUSTOM CURSOR — a trailing petal (desktop only)
+============================================================ */
+.petal-cursor{
+  position:fixed; top:0; left:0; width:20px; height:20px; z-index:999;
+  pointer-events:none; transform:translate(-50%,-50%);
+  opacity:0; transition:opacity .3s;
+  will-change:transform;
+}
+@media (hover:hover) and (pointer:fine){ .petal-cursor.active{ opacity:1; } }
+
+/* ============================================================
+   INTRO SEQUENCE — canvas-driven gift → fountain → wall → reveal
+============================================================ */
+.intro{
+  position:fixed; inset:0; z-index:200;
+  display:flex; align-items:center; justify-content:center;
+  background: radial-gradient(120% 100% at 50% 45%, #2a1520 0%, #170d13 70%);
+  overscroll-behavior:none;
+}
+.intro canvas{ position:absolute; inset:0; width:100%; height:100%; }
+.intro-skip{
+  position:absolute; bottom:clamp(20px,5vh,48px); right:clamp(20px,5vw,48px);
+  font-size:.68rem; letter-spacing:.24em; text-transform:uppercase; color:var(--ivory-dim);
+  border:1px solid rgba(247,236,227,.25); padding:10px 18px; border-radius:var(--r-pill);
+  opacity:.7; transition:opacity var(--dur-fast) ease, border-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-soft);
+  z-index:2;
+}
+.intro-skip:hover{ opacity:1; border-color:var(--rose-soft); transform:translateY(-1px); }
+.intro-skip:active{ transform:translateY(0) scale(.97); }
+.intro-caption{
+  position:absolute; top:clamp(20px,8vh,64px); left:0; right:0; text-align:center;
+  font-family:var(--script); font-style:italic; font-size:clamp(1.2rem,3vw,1.8rem);
+  color:var(--rose-soft); opacity:0; z-index:2;
+  text-shadow: 0 0 24px rgba(255,159,192,.35);
+}
+body.intro-active{ overflow:hidden; height:100vh; }
+
+/* ============================================================
+   NAVIGATION — a single bloom that opens into the index
+============================================================ */
+/* One real flex row spanning the full width, both children centered
+   on the exact same axis with matching edge insets — this is what
+   actually guarantees "perfectly centered," not two separately
+   positioned fixed elements that only approximate it. */
+.nav-bar{
+  position:fixed; top:0; left:0; right:0; z-index:60;
+  height:var(--nav-h); display:flex; align-items:center; justify-content:space-between;
+  padding: 0 clamp(16px,4vw,32px);
+}
+.mark{
+  display:flex; align-items:center; gap:8px;
+  font-family:var(--script); font-style:italic; font-size:clamp(1.05rem,2vw,1.3rem);
+  color:var(--ivory); letter-spacing:.02em;
+  transition: color var(--dur-fast) ease;
+}
+.mark:hover{ color:var(--rose-soft); }
+/* Instrument Serif's italic sits visually lower than the sans label
+   next to it at the same font-size — a couple of px of optical lift
+   corrects it so the two read as one baseline, not a stagger. */
+.mark span{ font-family:var(--body); font-size:.58rem; letter-spacing:.3em; color:var(--rose-soft); text-transform:uppercase; line-height:1; transform:translateY(-1px); }
+
+.bloom-toggle{
+  width:44px; height:44px; display:flex; align-items:center; justify-content:center;
+  transition: transform var(--dur-fast) var(--ease-soft);
+}
+.bloom-toggle:hover{ transform:scale(1.08); }
+.bloom-toggle:active{ transform:scale(.94); }
+.bloom-toggle svg{ width:40px; height:40px; overflow:visible; }
+.bloom-toggle .petal{
+  transform-origin: 50px 50px;
+  transition: transform .6s var(--ease-lux), fill .4s;
+  fill: var(--rose-soft);
+}
+.bloom-toggle:hover .petal{ fill: var(--rose-bright); }
+.bloom-toggle.open .petal{ transform: rotate(20deg) scale(.7); }
+.bloom-toggle .core{ fill:var(--gold); }
+
+/* full-screen index — reveal now blooms from the toggle's true
+   position (JS sets --reveal-x/--reveal-y) instead of a hard-coded
+   corner, so it stays anchored to the button at every breakpoint */
+.garden-index{
+  position:fixed; inset:0; z-index:55;
+  background: linear-gradient(160deg, var(--bg-plum-2), var(--bg-deep));
+  display:flex; align-items:center; justify-content:center;
+  clip-path: circle(2% at var(--reveal-x, 92%) var(--reveal-y, 4%));
+  transition: clip-path .9s var(--ease-lux);
+  pointer-events:none;
+}
+.garden-index.open{ clip-path: circle(150% at var(--reveal-x, 92%) var(--reveal-y, 4%)); pointer-events:auto; }
+.garden-index-inner{
+  width:min(90%,640px); padding: 0 20px;
+  display:flex; flex-direction:column; align-items:center; text-align:center;
+}
+.garden-index-list{ list-style:none; width:100%; }
+.garden-index-list li{ overflow:hidden; display:flex; justify-content:center; }
+.garden-index-list a{
+  display:inline-flex; align-items:baseline; justify-content:center; gap:20px;
+  font-family:var(--display); font-weight:400; font-size:clamp(1.5rem,5.4vw,3.2rem);
+  padding:clamp(10px,1.6vh,14px) 0; color:var(--ivory-dim);
+  transform:translateY(110%);
+  transition: color var(--dur-fast) ease, letter-spacing var(--dur-med) ease;
+  letter-spacing:0;
+}
+.garden-index.open .garden-index-list a{ animation:indexUp .8s var(--ease-lux) forwards; }
+.garden-index-list a:hover, .garden-index-list a:focus-visible{ color:var(--rose-bright); letter-spacing:.01em; }
+.garden-index-list a.active{ color:var(--rose-bright); }
+.garden-index-list a.active .num{ color:var(--rose-bright); }
+.garden-index-list a .num{ font-family:var(--body); font-size:.72rem; color:var(--gold); letter-spacing:.1em; flex-shrink:0; }
+@keyframes indexUp{ to{ transform:translateY(0); } }
+.garden-index-foot{
+  margin-top:clamp(28px,5vh,44px); font-size:.68rem; letter-spacing:.2em; text-transform:uppercase; color:var(--rose-soft); opacity:.7; text-align:center;
+}
+
+
+
+/* ============================================================
+   HERO — the thesis: a single bloom opening over her name
+============================================================ */
+.hero{
+  position:relative; min-height:100svh; display:flex; align-items:center;
+  /* padding-top == nav height, not a rough vh guess — this is the
+     exact offset that makes the content's optical center land in the
+     middle of the space actually visible below the fixed nav, instead
+     of the true geometric center of the full (nav-covered) viewport */
+  padding: var(--nav-h) var(--pad-x) 0; overflow:hidden;
+}
+/* Trimmed further — a hero decoration should read as ambient light
+   behind her name, never as a second focal point competing with it. */
+.hero-bloom-stage{
+  position:absolute; right:-10%; top:50%; transform:translateY(-50%);
+  width:min(34vw,480px); height:min(34vw,480px); z-index:0;
+  opacity:.34; pointer-events:none;
+  filter: blur(.4px);
+  mask-image: radial-gradient(circle at 50% 50%, black 55%, transparent 92%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, black 55%, transparent 92%);
+}
+.hero-content{
+  position:relative; z-index:2; max-width:760px; width:100%;
+  opacity:0; transform:translateY(18px);
+  transition: opacity 1.1s var(--ease-soft), transform 1.1s var(--ease-soft);
+}
+.hero-content.reveal{ opacity:1; transform:translateY(0); }
+.hero .eyebrow{ margin-bottom:clamp(18px,3vh,28px); }
+.hero-name{
+  font-family: var(--display); font-weight:400; line-height:.92;
+  font-size: clamp(3.2rem, 11vw, 8.4rem);
+  color: var(--ivory);
+  letter-spacing:-0.01em;
+  word-break: break-word;
+}
+/* SplitType wraps each glyph in a .char span — needs to be inline-block
+   for GSAP to transform (translate/rotate) each one independently */
+.hero-name .char{ display:inline-block; will-change:transform,opacity; }
+.section-head h2 .word{ display:inline-block; will-change:transform,opacity; }
+.hero-sub{
+  font-family:var(--script); font-style:italic; font-weight:400;
+  font-size: clamp(1.5rem,4.2vw,3.2rem); color:var(--rose-soft);
+  margin-top: 4px;
+}
+.hero-line{
+  margin: clamp(22px,4vh,34px) 0; max-width:420px;
+  font-size:clamp(.94rem,1.6vw,1.02rem); line-height:1.7; color:var(--ivory-dim); font-weight:300;
+}
+.hero-cta{
+  display:inline-flex; align-items:center; gap:16px;
+  padding: 14px 4px; position:relative;
+}
+.hero-cta .cta-txt{
+  font-size:.8rem; letter-spacing:.2em; text-transform:uppercase; color:var(--ivory);
+}
+.hero-cta .cta-line{ width:56px; height:1px; background:var(--rose); position:relative; overflow:hidden; flex-shrink:0; }
+.hero-cta .cta-line::after{
+  content:''; position:absolute; inset:0; background:var(--rose-bright);
+  transform:translateX(-100%); transition: transform .5s var(--ease-lux);
+}
+.hero-cta:hover .cta-line::after{ transform:translateX(0); }
+.hero-cta:hover .cta-txt{ color:var(--rose-bright); }
+
+.hero-count{
+  position:absolute; left:var(--pad-x); bottom:clamp(20px,7vh,56px); z-index:2;
+  font-size:.68rem; letter-spacing:.2em; text-transform:uppercase; color:var(--ivory-dim); opacity:.75;
+  display:flex; align-items:center; gap:10px; max-width:60vw;
+}
+.hero-count::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--rose-bright); box-shadow:0 0 12px var(--rose-bright); flex-shrink:0; }
+
+.scroll-cue{
+  position:absolute; right:var(--pad-x); bottom:clamp(20px,7vh,56px); z-index:2;
+  writing-mode: vertical-rl; font-size:.64rem; letter-spacing:.3em; text-transform:uppercase; color:var(--ivory-dim);
+  display:flex; align-items:center; gap:14px; opacity:.8;
+}
+.scroll-cue .stem{ width:1px; height:52px; background:linear-gradient(var(--rose-soft),transparent); }
+
+/* ============================================================
+   SHARED SECTION SHELL
+============================================================ */
+section{ position:relative; z-index:1; padding: var(--pad-y) var(--pad-x); }
+/* keeps every section's content from stretching thin on ultrawide displays */
+.section-head, .press-field, .field-notes, .player, .dial-row{
+  max-width: var(--max-w); margin-right:auto;
+}
+.section-head{ max-width:640px; margin-bottom:clamp(40px,6vh,64px); }
+.section-head h2{
+  font-family:var(--display); font-weight:400; font-size:clamp(1.9rem,5vw,3.6rem);
+  margin-top:16px; color:var(--ivory); line-height:1.08;
+}
+.section-head p{ margin-top:16px; color:var(--ivory-dim); font-weight:300; font-size:1rem; max-width:480px; }
+.section-head em{ font-family:var(--script); font-style:italic; color:var(--rose-soft); }
+
+/* ============================================================
+   GALLERY — pressed-flower scrapbook
+   Desktop/tablet: absolute overlap. Mobile: horizontal snap strip
+   (absolute overlap layouts break down under 700px — this avoids it).
+============================================================ */
+.press-field{ position:relative; height: 175vh; margin-top:clamp(24px,4vh,48px); }
+.press-card{
+  position:absolute; width: min(28vw, 320px); border-radius:3px;
+  background: var(--ivory); padding: 14px 14px 44px;
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,.55), 0 4px 14px rgba(0,0,0,.25);
+  transition: transform .5s var(--ease-lux), box-shadow .5s;
+  will-change: transform;
+}
+.press-card img{ width:100%; height:320px; object-fit:cover; filter:saturate(.92) contrast(1.02); border-radius:1px; }
+.press-card:hover{ box-shadow:0 40px 80px -20px rgba(0,0,0,.65), 0 4px 14px rgba(0,0,0,.3); }
+.press-card:focus-visible{ outline:2px solid var(--rose-bright); outline-offset:4px; box-shadow:0 40px 80px -20px rgba(0,0,0,.65); }
+.press-card .cap{
+  position:absolute; bottom:12px; left:14px; right:14px;
+  font-family:var(--script); font-style:italic; font-size:.95rem; color:var(--ink); opacity:.75;
+}
+.press-card .tag{
+  position:absolute; top:-13px; left:18px; font-family:var(--body); font-size:.6rem;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--bg-deep); background:var(--gold);
+  padding:4px 10px; box-shadow:0 6px 14px rgba(0,0,0,.35);
+}
+.press-1{ top:0%;   left:2%;  transform:rotate(-6deg); }
+.press-2{ top:8%;   left:36%; transform:rotate(4deg); z-index:2;}
+.press-3{ top:42%;  left:6%;  transform:rotate(3deg); }
+.press-4{ top:38%;  left:58%; transform:rotate(-4deg); }
+.press-5{ top:74%;  left:30%; transform:rotate(-2deg); }
+
+.gallery-hint{
+  text-align:center; font-size:.7rem; letter-spacing:.25em; text-transform:uppercase; color:var(--ivory-dim); opacity:.6; margin-top:clamp(16px,2vh,28px);
+}
+
+/* ============================================================
+   REASONS — field notes / seed packets, asymmetric collage
+============================================================ */
+/* A journal, not a feature grid — one column, generous vertical
+   rhythm, alternating alignment so the eye has to travel and slow
+   down rather than scanning a scannable grid of cards. */
+.field-notes{
+  display:flex; flex-direction:column; gap: clamp(56px,10vh,120px);
+  margin-top:clamp(56px,9vh,96px); max-width:760px;
+}
+.note{
+  position:relative; max-width:520px; padding-left: clamp(28px,4vw,40px);
+  transition: transform .5s var(--ease-lux);
+}
+.note::before{
+  content:''; position:absolute; left:0; top:6px; bottom:-8px; width:1.5px;
+  background: linear-gradient(var(--sage), transparent 90%); opacity:.55;
+  transition: opacity .5s, height .5s;
+}
+.note:hover::before{ opacity:1; }
+.note:hover{ transform: translateX(6px); }
+.note .tag{
+  font-family:var(--display); font-style:italic; font-size:clamp(2.6rem,6vw,3.6rem);
+  color: rgba(247,236,227,.09); line-height:1; display:block; margin-bottom:-.15em;
+  letter-spacing:0; text-transform:none;
+}
+.note h3{ font-family:var(--display); font-weight:400; font-size:clamp(1.35rem,2.4vw,1.7rem); margin:8px 0 12px; color:var(--ivory); }
+.note p{ font-size:.95rem; line-height:1.7; color:var(--ivory-dim); font-weight:300; }
+
+/* alternate indent so consecutive notes don't feel like repeating
+   rows of the same component */
+.note:nth-child(even){ align-self:flex-end; text-align:left; }
+.note:nth-child(even)::before{ left:auto; right: calc(100% - 1.5px - clamp(28px,4vw,40px)); }
+
+/* ============================================================
+   MESSAGE — the letter, pressed under glass
+============================================================ */
+.letter-wrap{ display:flex; justify-content:center; }
+.letter{
+  position:relative; max-width:600px; width:100%;
+  padding: clamp(12px,3vh,24px) clamp(4px,2vw,16px); text-align:left;
+  /* deliberately no card, no border, no fill — the one section that
+     should feel like paper itself rather than a UI component sitting
+     on the page */
+}
+.letter::before{
+  content:''; position:absolute; top:-40px; left:0; width:44px; height:1px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+
+.letter-drop{
+  font-family:var(--display); font-size:clamp(3.2rem,7vw,4.4rem); float:left; line-height:.8;
+  margin:6px 10px 0 0; color:var(--rose-soft);
+}
+.letter p{ font-size:clamp(.95rem,1.6vw,1.04rem); line-height:1.85; color:var(--ivory-dim); font-weight:300; margin-bottom:20px; }
+.letter mark{ background:none; color:var(--rose-bright); font-style:italic; font-family:var(--script); font-size:1.1em; }
+.letter-sign{ margin-top:32px; text-align:right; }
+.letter-sign .who{ font-family:var(--script); font-style:italic; font-size:clamp(1.3rem,2.6vw,1.6rem); color:var(--ivory); }
+.letter-sign .from{ display:block; font-size:.68rem; letter-spacing:.2em; text-transform:uppercase; color:var(--rose-soft); margin-top:4px; }
+
+/* ============================================================
+   SOUNDTRACK — one song, one elegant player. Replaces the old
+   three-track playlist: a single carefully-chosen track deserves
+   a calmer, more deliberate presence than a list ever could.
+============================================================ */
+.player{
+  margin-top:clamp(32px,6vh,48px); border-radius:var(--r-lg);
+  padding: clamp(28px,5vh,44px) clamp(22px,5vw,48px);
+  background: linear-gradient(160deg, rgba(255,255,255,.055), rgba(255,255,255,.015));
+  border:1px solid rgba(247,236,227,.1);
+  max-width:560px;
+  display:flex; align-items:center; gap:clamp(20px,3.4vw,32px);
+  position:relative; overflow:hidden;
+}
+.player::before{
+  /* a slow ambient sheen so the card itself feels alive even paused */
+  content:''; position:absolute; inset:-40%; z-index:0; pointer-events:none;
+  background: radial-gradient(circle at 30% 30%, rgba(232,143,163,.14), transparent 60%);
+  animation: playerGlow 9s ease-in-out infinite alternate;
+}
+@keyframes playerGlow{ from{ transform:translate(-4%,-2%) scale(1); } to{ transform:translate(4%,3%) scale(1.08); } }
+
+.track-play{
+  position:relative; z-index:1; flex-shrink:0;
+  width:clamp(64px,9vw,76px); height:clamp(64px,9vw,76px); border-radius:50%;
+  border:1px solid var(--rose-soft); display:flex; align-items:center; justify-content:center;
+  transition: background var(--dur-med) ease, border-color var(--dur-med) ease, transform var(--dur-fast) var(--ease-soft), box-shadow var(--dur-med) ease;
+}
+.track-play:hover{ transform:scale(1.06); box-shadow:0 10px 28px -10px rgba(232,143,163,.5); }
+.track-play:active{ transform:scale(.96); }
+.track-play svg{ width:16px; height:16px; fill:var(--rose-soft); transition:fill var(--dur-fast) ease; }
+.track-play .ic-play{ transform:translateX(1.5px); }
+.track-play .ic-pause{ display:none; }
+.player.playing .track-play{ background:var(--rose); border-color:var(--rose); }
+.player.playing .track-play svg{ fill:var(--bg-deep); }
+.player.playing .track-play .ic-play{ display:none; }
+.player.playing .track-play .ic-pause{ display:block; }
+
+.track-body{ position:relative; z-index:1; flex:1; min-width:0; }
+.track-meta{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.track-title{ font-family:var(--display); font-size:clamp(1.1rem,2.2vw,1.35rem); color:var(--ivory); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.track-sub{ font-size:.78rem; color:var(--ivory-dim); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.track-wave{ display:flex; align-items:flex-end; gap:3px; height:20px; flex-shrink:0; }
+.track-wave i{ width:3px; height:35%; background:var(--rose-soft); opacity:.5; border-radius:2px; transform-origin:bottom; transition:opacity var(--dur-fast) ease; }
+.track-wave i:nth-child(1){ height:38%; } .track-wave i:nth-child(2){ height:64%; }
+.track-wave i:nth-child(3){ height:28%; } .track-wave i:nth-child(4){ height:88%; }
+.track-wave i:nth-child(5){ height:46%; } .track-wave i:nth-child(6){ height:70%; }
+.track-wave i:nth-child(7){ height:34%; } .track-wave i:nth-child(8){ height:58%; }
+.player.playing .track-wave i{ animation: sway 1100ms ease-in-out infinite alternate; opacity:.95; }
+.player.playing .track-wave i:nth-child(1){ animation-delay: 0ms;   animation-duration:900ms;  }
+.player.playing .track-wave i:nth-child(2){ animation-delay: 90ms; animation-duration:1200ms; }
+.player.playing .track-wave i:nth-child(3){ animation-delay: 160ms;animation-duration:800ms;  }
+.player.playing .track-wave i:nth-child(4){ animation-delay: 40ms; animation-duration:1050ms; }
+.player.playing .track-wave i:nth-child(5){ animation-delay: 200ms;animation-duration:950ms;  }
+.player.playing .track-wave i:nth-child(6){ animation-delay: 120ms;animation-duration:1150ms; }
+.player.playing .track-wave i:nth-child(7){ animation-delay: 60ms; animation-duration:900ms;  }
+.player.playing .track-wave i:nth-child(8){ animation-delay: 180ms;animation-duration:1050ms; }
+@keyframes sway{ from{ transform:scaleY(.35); } to{ transform:scaleY(1); } }
+
+.track-scrub{
+  position:relative; width:100%; height:3px; border-radius:2px; margin-top:14px;
+  background:rgba(247,236,227,.12); cursor:pointer;
+}
+.track-scrub-fill{ position:absolute; inset:0 auto 0 0; width:0%; border-radius:2px; background:var(--rose-bright); }
+.track-scrub-fill::after{
+  content:''; position:absolute; top:50%; right:-5px; width:10px; height:10px; border-radius:50%;
+  background:var(--rose-bright); transform:translateY(-50%) scale(0); transition:transform var(--dur-fast) var(--ease-soft);
+  box-shadow:0 0 10px rgba(255,159,192,.7);
+}
+.player:hover .track-scrub-fill::after, .track-scrub:focus-visible .track-scrub-fill::after{ transform:translateY(-50%) scale(1); }
+.track-time{ display:flex; justify-content:space-between; margin-top:8px; font-size:.68rem; letter-spacing:.08em; color:var(--ivory-dim); opacity:.7; font-variant-numeric:tabular-nums; }
+
+.player-note{ margin-top:20px; font-size:.76rem; color:var(--ivory-dim); opacity:.65; line-height:1.6; max-width:560px; }
+.player-note code{ font-size:.9em; opacity:.9; }
+
+@media (max-width:560px){
+  .player{ flex-direction:column; align-items:flex-start; gap:18px; }
+  .track-play{ align-self:center; }
+  .track-body{ width:100%; }
+}
+
+/* ============================================================
+   COUNTDOWN — days till next bloom, petal dial
+============================================================ */
+.dial-row{ display:flex; gap:clamp(12px,2vw,24px); margin-top:clamp(40px,6vh,64px); flex-wrap:wrap; }
+.dial{
+  position:relative; width:clamp(108px,20vw,150px); height:clamp(108px,20vw,150px); border-radius:50%;
+  display:flex; align-items:center; justify-content:center; flex-direction:column;
+  border:1px solid rgba(247,236,227,.12);
+  background: radial-gradient(circle at 35% 30%, rgba(232,143,163,.12), transparent 70%);
+  flex: 1 1 108px; max-width:150px;
+}
+.dial .val{ font-family:var(--display); font-size:clamp(1.7rem,4.5vw,2.4rem); color:var(--ivory); }
+.dial .lbl{ font-size:.62rem; letter-spacing:.2em; text-transform:uppercase; color:var(--rose-soft); margin-top:4px; }
+.dial svg{ position:absolute; inset:0; transform:rotate(-90deg); width:100%; height:100%; }
+.dial circle{ fill:none; stroke-width:1.4; }
+.dial .track{ stroke: rgba(247,236,227,.08); }
+.dial .prog{ stroke: var(--rose-bright); stroke-linecap:round; transition: stroke-dashoffset 1s var(--ease-lux); }
+.countdown-note{ margin-top:24px; font-size:.82rem; color:var(--ivory-dim); max-width:440px; line-height:1.6; }
+.countdown-note code{ font-size:.9em; opacity:.9; }
+
+/* ============================================================
+   FINALE — full bloom
+============================================================ */
+.finale{ text-align:center; display:flex; flex-direction:column; align-items:center; padding-top:clamp(100px,18vh,180px); padding-bottom:clamp(100px,18vh,180px); }
+.finale .eyebrow{ justify-content:center; }
+.finale-bloom{ width:clamp(84px,14vw,120px); height:clamp(84px,14vw,120px); margin-bottom:20px; }
+.finale h2{ font-family:var(--display); font-weight:400; font-size:clamp(2.3rem,7vw,5rem); color:var(--ivory); }
+.finale h2 em{ font-family:var(--script); font-style:italic; color:var(--rose-soft); }
+.finale .quote{ margin-top:24px; font-family:var(--script); font-style:italic; font-size:clamp(1.15rem,2.6vw,1.4rem); color:var(--rose-soft); max-width:520px; }
+.finale .wish{ margin-top:14px; color:var(--ivory-dim); font-weight:300; max-width:460px; }
+.finale-btn{
+  margin-top:40px; padding: 16px clamp(28px,5vw,40px); border:1px solid var(--rose-soft); border-radius:var(--r-pill);
+  font-size:.75rem; letter-spacing:.22em; text-transform:uppercase; color:var(--ivory);
+  position:relative; overflow:hidden; transition:color var(--dur-med) ease, transform var(--dur-fast) var(--ease-soft), box-shadow var(--dur-med) ease;
+}
+.finale-btn::before{
+  content:''; position:absolute; inset:0; background:var(--rose); transform:scaleX(0); transform-origin:left;
+  transition: transform .5s var(--ease-lux); z-index:-1;
+}
+.finale-btn:hover{ color:var(--bg-deep); transform:translateY(-2px); box-shadow:0 14px 34px -12px rgba(232,143,163,.55); }
+.finale-btn:hover::before{ transform:scaleX(1); }
+.finale-btn:active{ transform:translateY(0); }
+
+/* ============================================================
+   FOOTER
+============================================================ */
+footer{ padding: clamp(48px,8vh,80px) var(--pad-x) clamp(36px,6vh,60px); text-align:center; border-top:1px solid rgba(247,236,227,.08); position:relative; z-index:1; }
+footer .mark2{ font-family:var(--script); font-style:italic; font-size:1.35rem; color:var(--ivory); }
+footer p{ margin-top:10px; font-size:.76rem; letter-spacing:.06em; color:var(--ivory-dim); opacity:.7; }
+
+/* ============================================================
+   RESPONSIVE — tablet, mobile, landscape, ultrawide
+============================================================ */
+
+/* Ultrawide: keep the composition from stretching thin */
+@media (min-width: 1800px){
+  :root{ --max-w: 1560px; }
+  .hero-content{ max-width:840px; }
+  .press-field{ height:150vh; }
+}
+
+/* Tablet portrait / small laptop */
+@media (max-width: 1024px){
+  .hero-bloom-stage{ width:min(40vw,360px); height:min(40vw,360px); right:-16%; opacity:.3; }
+  .press-card{ width:min(34vw,280px); }
+  .press-card img{ height:280px; }
+}
+
+/* Tablet / large phone landscape */
+@media (max-width: 860px){
+  .field-notes{ gap: clamp(44px,8vh,80px); }
+}
+
+/* Phones */
+@media (max-width: 700px){
+  .mark{ font-size:1rem; }
+  .mark span{ display:none; }
+
+  .hero{ padding-top:110px; align-items:flex-start; }
+  .hero-bloom-stage{
+    position:absolute; right:50%; top:auto; bottom:-6%; transform:translate(50%,0);
+    width:58vw; height:58vw; opacity:.3; z-index:0;
+  }
+  .hero-content{ z-index:2; }
+  .hero-count, .scroll-cue{ position:static; margin-top:40px; max-width:100%; }
+  .scroll-cue{ writing-mode:horizontal-tb; gap:10px; }
+  .scroll-cue .stem{ width:40px; height:1px; background:linear-gradient(90deg,var(--rose-soft),transparent); }
+
+  /* Gallery becomes a snap-scroll strip — absolute overlap
+     layouts don't survive narrow viewports without overflow bugs */
+  .press-field{
+    height:auto; display:flex; gap:20px; overflow-x:auto; scroll-snap-type:x mandatory;
+    padding: 10px 6px 26px; margin-left:calc(-1 * var(--pad-x)); margin-right:calc(-1 * var(--pad-x)); padding-left:var(--pad-x); padding-right:var(--pad-x);
+    -webkit-overflow-scrolling:touch;
+  }
+  .press-card{
+    position:static; transform:none; width:74vw; max-width:300px; flex:0 0 auto;
+    scroll-snap-align:center;
+  }
+  .press-card:nth-child(even){ transform:rotate(2deg); }
+  .press-card:nth-child(odd){ transform:rotate(-2deg); }
+  .press-card img{ height:60vw; max-height:340px; }
+
+  .note{ max-width:none; }
+  .note:nth-child(even){ align-self:stretch; }
+  .note:nth-child(even)::before{ left:0; right:auto; }
+  .letter{ padding: 40px 4px; }
+  .letter-drop{ font-size:2.6rem; }
+  .dial-row{ justify-content:center; gap:14px; }
+  .dial{ flex-basis: calc(50% - 14px); max-width:none; }
+  .track-wave{ width:60px; }
+  .track-sub{ display:none; }
+  .finale-btn{ width:100%; text-align:center; }
+  .intro-caption{ font-size:1.1rem; padding:0 24px; }
+}
+
+/* Very small phones */
+@media (max-width: 380px){
+  .hero-name{ font-size:clamp(2.6rem,13vw,3.4rem); }
+  .dial{ flex-basis: calc(50% - 10px); }
+}
+
+/* Landscape phones (short viewport height) */
+@media (max-height: 480px) and (orientation: landscape){
+  .hero{ min-height:auto; padding-top:100px; padding-bottom:60px; }
+  .hero-bloom-stage{ display:none; }
+  .finale{ padding-top:100px; padding-bottom:100px; }
+  section{ padding-top:80px; padding-bottom:80px; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:.01ms !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
+}
+:focus-visible{ outline:2px solid var(--rose-bright); outline-offset:3px; }

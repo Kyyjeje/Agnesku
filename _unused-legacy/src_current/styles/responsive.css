@@ -1,0 +1,88 @@
+/* ============================================================
+   RESPONSIVE — tablet, mobile, landscape, ultrawide
+============================================================ */
+
+/* Ultrawide: keep the composition from stretching thin */
+@media (min-width: 1800px){
+  :root{ --max-w: 1560px; }
+  .hero-content{ max-width:840px; }
+  .press-field{ height:150vh; }
+}
+
+/* Tablet portrait / small laptop */
+@media (max-width: 1024px){
+  .press-card{ width:min(34vw,280px); }
+  .press-card img{ height:280px; }
+}
+
+/* Nav: seven spelled-out links + the logo + the chapter counter stop
+   comfortably fitting on one row below this width — swap the always-
+   visible bar for the toggle + full-screen index instead of letting
+   it wrap or crowd the edges */
+@media (max-width: 900px){
+  .nav-links{ display:none; }
+  .bloom-toggle{ display:flex; }
+}
+
+/* Tablet / large phone landscape */
+@media (max-width: 860px){
+  .field-notes{ gap: clamp(44px,8vh,80px); }
+}
+
+/* Phones */
+@media (max-width: 700px){
+  .mark{ font-size:1rem; }
+  .mark span{ display:none; }
+  .nav-chapter{ font-size:.6rem; gap:4px; }
+
+  .hero{ padding-top:110px; align-items:flex-start; }
+  .hero-content{ z-index:2; }
+  .scroll-cue{ position:static; margin-top:40px; max-width:100%; }
+  .scroll-cue{ writing-mode:horizontal-tb; gap:10px; }
+  .scroll-cue .stem{ width:40px; height:1px; background:linear-gradient(90deg,var(--rose-soft),transparent); }
+
+  /* Gallery becomes a snap-scroll strip — absolute overlap
+     layouts don't survive narrow viewports without overflow bugs */
+  .press-field{
+    height:auto; display:flex; gap:20px; overflow-x:auto; scroll-snap-type:x mandatory;
+    padding: 10px 6px 26px; margin-left:calc(-1 * var(--pad-x)); margin-right:calc(-1 * var(--pad-x)); padding-left:var(--pad-x); padding-right:var(--pad-x);
+    -webkit-overflow-scrolling:touch;
+  }
+  .press-card{
+    position:static; transform:none; width:74vw; max-width:300px; flex:0 0 auto;
+    scroll-snap-align:center;
+  }
+  .press-card:nth-child(even){ transform:rotate(2deg); }
+  .press-card:nth-child(odd){ transform:rotate(-2deg); }
+  .press-card img{ height:60vw; max-height:340px; }
+
+  .note{ max-width:none; }
+  .letter{ padding: 40px 4px; }
+  .letter-drop{ font-size:2.6rem; }
+  .dial-row{ justify-content:center; gap:14px; }
+  .dial{ flex-basis: calc(50% - 14px); max-width:none; }
+  .track-wave{ width:60px; }
+  .track-sub{ display:none; }
+  .finale-btn{ width:100%; text-align:center; }
+  .intro-caption{ font-size:1.1rem; padding:0 24px; }
+}
+
+/* Very small phones */
+@media (max-width: 380px){
+  .hero-name{ font-size:clamp(2.6rem,13vw,3.4rem); }
+  .dial{ flex-basis: calc(50% - 10px); }
+  .nav-chapter-sep, .nav-chapter-total{ display:none; }
+}
+
+/* Landscape phones (short viewport height) */
+@media (max-height: 480px) and (orientation: landscape){
+  .hero{ min-height:auto; padding-top:100px; padding-bottom:60px; }
+  .finale{ padding-top:100px; padding-bottom:100px; }
+  section{ padding-top:80px; padding-bottom:80px; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:.01ms !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
+}
+:focus-visible{ outline:2px solid var(--rose-bright); outline-offset:3px; }

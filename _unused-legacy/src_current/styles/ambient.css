@@ -1,0 +1,108 @@
+/* ============================================================
+   AMBIENT LAYERS — background, glow, grain, vignette
+   Stacking: glow(-2) < petal canvases(-1) < page content(1..) < nav(60+)
+   Nothing ambient sits above readable content.
+============================================================ */
+.garden-glow{
+  position:fixed; inset:-10%; z-index:-2; pointer-events:none;
+  background:
+    radial-gradient(38% 34% at 18% 12%, rgba(232,143,163,.16), transparent 60%),
+    radial-gradient(45% 40% at 88% 78%, rgba(217,171,114,.13), transparent 60%),
+    radial-gradient(30% 30% at 70% 15%, rgba(255,159,192,.10), transparent 60%);
+  filter: blur(10px);
+  animation: breathe 14s ease-in-out infinite alternate;
+  background-size: 130% 130%;
+}
+@keyframes breathe{
+  0%   { opacity:.75; background-position: 0% 0%; }
+  100% { opacity:1;   background-position: 8% 6%; }
+}
+
+#petal-bg, #petal-mid, #petal-fg{
+  position:fixed; inset:0; width:100vw; height:100vh;
+  pointer-events:none; transition: filter .6s ease;
+}
+#petal-bg{  z-index:-1; }
+#petal-mid{ z-index:0;  }
+#petal-fg{  z-index:5; mix-blend-mode:screen; opacity:.85; }
+/* the foreground layer is intentionally sparse — see JS tier
+   counts — so it accents but never masks text */
+
+.grain{
+  position:fixed; inset:0; z-index:6; pointer-events:none;
+  opacity:.03; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.vignette{
+  position:fixed; inset:0; z-index:6; pointer-events:none;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 45%, rgba(10,4,8,.5) 100%);
+}
+
+/* ============================================================
+   CUSTOM CURSOR — a trailing petal (desktop only)
+============================================================ */
+.petal-cursor{
+  position:fixed; top:0; left:0; width:20px; height:20px; z-index:999;
+  pointer-events:none; transform:translate(-50%,-50%);
+  opacity:0; transition:opacity .3s;
+  will-change:transform;
+}
+@media (hover:hover) and (pointer:fine){ .petal-cursor.active{ opacity:1; } }
+
+/* ============================================================
+   CURSOR GLOW — a soft trailing light behind the petal cursor,
+   new in this pass (CursorEngine.js). Desktop + medium/high
+   quality tier only; gated in JS, not just CSS, so it never even
+   allocates the eased-follow rAF loop on devices that can't spare it.
+============================================================ */
+.cursor-glow{
+  position:fixed; top:0; left:0; z-index:998;
+  pointer-events:none; transform:translate(-50%,-50%);
+  width:var(--cursor-glow-size, 220px); height:var(--cursor-glow-size, 220px);
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(255,159,192,.16) 0%, rgba(255,159,192,.06) 45%, transparent 72%);
+  opacity:0; transition:opacity .4s ease;
+  will-change:transform;
+}
+.cursor-glow.active{ opacity:1; }
+/* buttons/links get a brighter, tighter glow while hovered */
+.cursor-glow.hot{
+  background:radial-gradient(circle, rgba(255,159,192,.28) 0%, rgba(217,171,114,.1) 50%, transparent 72%);
+}
+
+/* ============================================================
+   LIGHT DUST — a handful of slow, softly glowing motes drifting
+   the full height of the page, sitting between the petal canvases
+   and the readable content (z:1). Pure CSS keyframes, generated
+   once by js/atmosphere.js — no per-frame JS cost at all.
+============================================================ */
+.dust-field{ position:fixed; inset:0; z-index:1; pointer-events:none; overflow:hidden; }
+.dust-mote{
+  position:absolute; border-radius:50%; background:var(--rose-soft);
+  opacity:0; filter:blur(1px);
+  animation-name: dustDrift, dustFade;
+  animation-timing-function: linear, ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+@keyframes dustDrift{
+  from{ transform: translate3d(0,110vh,0); }
+  to{   transform: translate3d(var(--dust-x,0), -10vh, 0); }
+}
+@keyframes dustFade{
+  0%, 100%{ opacity:0; }
+  12%, 88%{ opacity: var(--dust-op,.35); }
+}
+
+/* ============================================================
+   SCROLL PROGRESS — a hairline under the fixed nav that fills as
+   the page is read, giving the "directing a camera" scroll a
+   visible thread to follow
+============================================================ */
+.scroll-progress{
+  position:fixed; top:var(--nav-h); left:0; height:2px; z-index:61;
+  width:100%; transform-origin:left center; transform:scaleX(0);
+  background: linear-gradient(90deg, var(--rose), var(--gold));
+  box-shadow: 0 0 12px rgba(255,159,192,.5);
+}
+

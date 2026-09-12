@@ -1,0 +1,77 @@
+/* ============================================================
+   INTRO ENGINE — intro-lighting.css
+   CSS-driven volumetric light effects: rotating conic rays and
+   soft radial fog. These cost almost nothing at runtime because
+   they are GPU-composited, not drawn per-frame in canvas.
+============================================================ */
+
+/* ── Light rays — rotating conic gradient ───────────────── */
+.ie-rays {
+  position: absolute;
+  inset: -30%;
+  pointer-events: none;
+  opacity: 0;  /* controlled by GSAP via raysAlpha on #ie-rays */
+  will-change: transform, opacity;
+
+  background: conic-gradient(
+    from 0deg at 50% 48%,
+    transparent               0deg,
+    rgba(255,225,238, 0.09)   7deg,
+    transparent              17deg,
+    transparent              48deg,
+    rgba(255,220,235, 0.06)  56deg,
+    transparent              66deg,
+    transparent             108deg,
+    rgba(255,228,240, 0.08) 116deg,
+    transparent             128deg,
+    transparent             195deg,
+    rgba(255,215,232, 0.07) 203deg,
+    transparent             215deg,
+    transparent             288deg,
+    rgba(255,225,238, 0.09) 296deg,
+    transparent             310deg
+  );
+
+  /* Soft radial mask so rays read as a point-source volume rather
+     than a printed wheel pattern. Without the mask the hard conic
+     boundaries would be visible at the edges. */
+  mask-image: radial-gradient(
+    55% 55% at 50% 48%,
+    #000 0%, transparent 74%
+  );
+  -webkit-mask-image: radial-gradient(
+    55% 55% at 50% 48%,
+    #000 0%, transparent 74%
+  );
+
+  animation: ie-rays-spin 48s linear infinite;
+}
+@keyframes ie-rays-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Fog — two faint radial hazes that breathe ──────────── */
+.ie-fog {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0; /* controlled by GSAP */
+  will-change: opacity;
+  /* Layered radials at slightly different centres = depth */
+  background:
+    radial-gradient(
+      55% 50% at 44% 46%,
+      rgba(210, 145, 168, 0.12) 0%,
+      transparent 68%
+    ),
+    radial-gradient(
+      42% 46% at 58% 54%,
+      rgba(190, 120, 148, 0.08) 0%,
+      transparent 65%
+    );
+  animation: ie-fog-drift 16s ease-in-out infinite alternate;
+}
+@keyframes ie-fog-drift {
+  0%   { background-position: 0%   0%;   opacity: 0.7; }
+  100% { background-position: 3%   4%;   opacity: 1;   }
+}
