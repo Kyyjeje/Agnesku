@@ -1,0 +1,45 @@
+/* ============================================================
+   VARIABLES — design tokens: "In Full Bloom"
+   A twilight garden, not a template. Deep plum dusk rather than
+   pure black; one warm rose-gold bloom as the through-line.
+   Every other CSS file (and src/core/ConfigEngine.js, at runtime) reads
+   colors from here — change a value once, it propagates everywhere.
+============================================================ */
+:root{
+  --bg-deep:      #170d13;
+  --bg-plum-2:    #331a29;
+  --rose:         #e88fa3;
+  --rose-soft:    #f0b9c4;
+  --rose-bright:  #ff9fc0;
+  --gold:         #d9ab72;
+  --sage:         #7c8f68;
+  --ivory:        #f7ece3;
+  --ivory-dim:    #e2d3ca;
+  --ink:          #170d13;
+
+  --display: 'Fraunces', serif;
+  --script:  'Instrument Serif', serif;
+  --body:    'Inter', sans-serif;
+
+  --ease-lux: cubic-bezier(.22,1,.36,1);
+  --ease-soft: cubic-bezier(.16,.84,.44,1);
+
+  /* one shared timing + radius scale so every card, button and
+     transition across the site reads as the same handwriting
+     instead of each section inventing its own numbers */
+  --dur-fast:  .28s;
+  --dur-med:   .45s;
+  --dur-slow:  .8s;
+  --r-sm:      4px;
+  --r-md:      10px;
+  --r-lg:      22px;
+  --r-pill:    100px;
+
+  /* fluid, clamped section rhythm — replaces raw vw so ultrawide
+     screens don't get absurd whitespace and small screens don't
+     get crushed */
+  --pad-x:     clamp(20px, 6vw, 96px);
+  --pad-y:     clamp(64px, 13vh, 160px);
+  --max-w:     1440px;
+  --nav-h:     clamp(64px, 9vh, 92px);
+}

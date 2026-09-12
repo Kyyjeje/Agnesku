@@ -1,0 +1,82 @@
+/* ============================================================
+   INTRO ENGINE — intro-base.css
+   Structural layout for the intro overlay and its layers.
+   Visual styling lives in the other intro-*.css files.
+============================================================ */
+
+/* ── Overlay root ────────────────────────────────────────── */
+.ie-root {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #0e0609;       /* pure dark — canvas paints over this */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* ── Curtain — sits just below overlay, above the page ───── */
+/* Starts as solid cover; bloom-wipe collapses it from center */
+.ie-curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 190;
+  background: var(--bg-deep, #170d13);
+  pointer-events: none;
+  clip-path: inset(0 0 0 0);
+  will-change: clip-path;
+}
+.ie-curtain--bloom {
+  clip-path: circle(0% at 50% 50%);
+  transition: clip-path 1.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Lock scroll on body during intro ────────────────────── */
+body.intro-active {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ── Skip button ─────────────────────────────────────────── */
+.ie-skip {
+  position: absolute;
+  bottom: clamp(18px, 4.5vh, 44px);
+  right:  clamp(18px, 4.5vw, 44px);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--body, 'Inter', sans-serif);
+  font-size: 0.65rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(247, 236, 227, 0.5);
+  border: 1px solid rgba(247, 236, 227, 0.16);
+  padding: 9px 17px;
+  border-radius: 100px;
+  cursor: pointer;
+  z-index: 10;
+  transition: color 0.28s ease, border-color 0.28s ease, transform 0.22s ease;
+  background: transparent;
+  opacity: 0;
+  animation: ie-skip-appear 0.6s 2.8s ease forwards;
+}
+@keyframes ie-skip-appear {
+  to { opacity: 1; }
+}
+.ie-skip:hover {
+  color: var(--rose-soft, #f0b9c4);
+  border-color: rgba(240, 185, 196, 0.4);
+  transform: translateY(-2px);
+}
+.ie-skip:active { transform: translateY(0) scale(0.97); }
+.ie-skip-ico {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

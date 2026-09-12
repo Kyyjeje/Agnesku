@@ -1,0 +1,105 @@
+/* ============================================================
+   INTRO ENGINE — intro-typography.css
+   The typography stage: eyebrow, name, subtitle.
+   Initial states are set here (invisible); GSAP in
+   introTypography.js animates them to visible.
+============================================================ */
+
+/* ── Stage wrapper — centered over the canvas ───────────── */
+.ie-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2vh, 20px);
+  pointer-events: none;
+  z-index: 5;
+  padding: 0 clamp(20px, 8vw, 80px);
+  text-align: center;
+}
+
+/* ── Eyebrow ─────────────────────────────────────────────── */
+.ie-eyebrow {
+  font-family: var(--body, 'Inter', sans-serif);
+  font-size: clamp(0.62rem, 1.4vw, 0.78rem);
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: var(--rose-soft, #f0b9c4);
+  opacity: 0; /* animated by introTypography.revealEyebrow() */
+  padding-left: 0.38em; /* compensate for letter-spacing on last char */
+  text-shadow: 0 0 18px rgba(255, 159, 192, 0.35);
+  will-change: opacity, transform, filter;
+}
+
+/* ── Name wrap + name ────────────────────────────────────── */
+.ie-name-wrap {
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ie-name {
+  font-family: var(--display, 'Fraunces', serif);
+  font-weight: 400;
+  font-size: clamp(3.4rem, 13vw, 9rem);
+  line-height: 0.92;
+  color: var(--ivory, #f7ece3);
+  letter-spacing: -0.01em;
+  margin: 0;
+  /* Individual letter styles set by JS — span.ie-letter */
+  text-shadow:
+    0 0 60px rgba(255, 159, 192, 0.35),
+    0 0 120px rgba(255, 159, 192, 0.12);
+}
+
+/* Per-letter span inserted by introTypography.init() */
+.ie-letter {
+  display: inline-block;
+  /* Initial hidden state — GSAP animates to visible */
+  opacity: 0;
+  transform: translateY(16px) scale(0.88);
+  filter: blur(10px);
+  will-change: opacity, transform, filter;
+  /* Each letter gets a subtle warm drop-shadow once revealed */
+  transition: text-shadow 0.4s ease;
+}
+.ie-letter.on {
+  text-shadow:
+    0 0 28px rgba(255, 159, 192, 0.45),
+    0 0 60px rgba(255, 159, 192, 0.15);
+}
+
+/* ── Subtitle ────────────────────────────────────────────── */
+.ie-sub {
+  font-family: var(--script, 'Instrument Serif', serif);
+  font-style: italic;
+  font-size: clamp(1.2rem, 3.5vw, 2.2rem);
+  color: var(--rose-soft, #f0b9c4);
+  opacity: 0; /* animated by introTypography.revealSub() */
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 24px rgba(255, 159, 192, 0.28);
+  will-change: opacity, transform, filter;
+}
+
+/* ── Responsive tweaks ────────────────────────────────────── */
+@media (max-width: 480px) {
+  .ie-name {
+    font-size: clamp(2.8rem, 16vw, 5rem);
+  }
+  .ie-eyebrow {
+    font-size: 0.6rem;
+    letter-spacing: 0.28em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ie-letter,
+  .ie-eyebrow,
+  .ie-sub {
+    transition: none !important;
+    animation:  none !important;
+  }
+}

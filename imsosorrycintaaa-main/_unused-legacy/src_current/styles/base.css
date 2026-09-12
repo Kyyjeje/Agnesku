@@ -1,0 +1,33 @@
+/* ============================================================
+   BASE — reset + the few truly global elements (body, links,
+   buttons, selection, the reusable .eyebrow label).
+============================================================ */
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scroll-behavior:auto; }
+html, body{ width:100%; overflow-x:hidden; }
+body{
+  background: var(--bg-deep);
+  color: var(--ivory);
+  font-family: var(--body);
+  cursor: default;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+img{ display:block; max-width:100%; }
+a{ color:inherit; text-decoration:none; }
+button{ font-family:inherit; cursor:pointer; border:none; background:none; color:inherit; }
+::selection{ background: var(--rose); color: var(--ink); }
+svg{ display:block; }
+
+.eyebrow{
+  font-family: var(--body);
+  font-size: 0.7rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--rose-soft);
+  display:flex; align-items:center; gap:12px;
+}
+.eyebrow::before{
+  content:''; width:28px; height:1px; background:var(--rose-soft); opacity:.6; flex-shrink:0;
+}
+

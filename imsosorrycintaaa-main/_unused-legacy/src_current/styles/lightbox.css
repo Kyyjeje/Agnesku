@@ -1,0 +1,68 @@
+/* ============================================================
+   LIGHTBOX — new in this pass. Click any gallery photo to open a
+   full-size view with a glass-blur backdrop (MotionEngine's
+   blurReveal/blurDismiss presets drive the open/close motion; this
+   file is just the static layout and backdrop styling).
+============================================================ */
+
+.lightbox{
+  position:fixed; inset:0; z-index:1200;
+  display:flex; align-items:center; justify-content:center;
+  padding:clamp(20px,6vw,64px);
+  background:rgba(23,13,19,.82);
+  backdrop-filter:blur(18px) saturate(1.1);
+  -webkit-backdrop-filter:blur(18px) saturate(1.1);
+  opacity:0; pointer-events:none;
+}
+.lightbox.open{ opacity:1; pointer-events:auto; }
+
+.lightbox-frame{
+  position:relative; max-width:min(900px, 92vw); max-height:88vh;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+}
+.lightbox-frame img{
+  max-width:100%; max-height:74vh; width:auto; height:auto;
+  border-radius:var(--r-lg);
+  box-shadow:0 30px 80px -20px rgba(0,0,0,.6), 0 0 0 1px rgba(247,236,227,.08);
+  object-fit:contain;
+}
+.lightbox-cap{
+  color:var(--ivory-dim); font-family:var(--script); font-size:clamp(18px,2.4vw,24px);
+  text-align:center; max-width:70ch;
+}
+.lightbox-tag{
+  color:var(--gold); font-family:var(--body); font-size:12px;
+  letter-spacing:.14em; text-transform:uppercase; opacity:.85;
+}
+
+.lightbox-close{
+  position:absolute; top:clamp(12px,3vw,28px); right:clamp(12px,3vw,28px);
+  width:44px; height:44px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--ivory); background:rgba(247,236,227,.08);
+  border:1px solid rgba(247,236,227,.14);
+  transition:background var(--dur-fast) ease, transform var(--dur-fast) ease;
+}
+.lightbox-close:hover{ background:rgba(247,236,227,.16); transform:scale(1.06); }
+.lightbox-close svg{ width:16px; height:16px; }
+
+.lightbox-nav{
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:48px; height:48px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--ivory); background:rgba(247,236,227,.08);
+  border:1px solid rgba(247,236,227,.14);
+  transition:background var(--dur-fast) ease, transform var(--dur-fast) ease;
+}
+.lightbox-nav:hover{ background:rgba(247,236,227,.16); }
+.lightbox-nav:active{ transform:translateY(-50%) scale(.94); }
+.lightbox-nav.prev{ left:clamp(-8px,-2vw,12px); }
+.lightbox-nav.next{ right:clamp(-8px,-2vw,12px); }
+.lightbox-nav svg{ width:18px; height:18px; }
+@media (max-width:700px){
+  .lightbox-nav{ display:none; } /* swipe area is small on mobile; keep chrome minimal */
+}
+
+/* the gallery cards themselves get a pointer + a subtle affordance
+   now that they're clickable, not just scroll-parallax decoration */
+.press-card{ cursor:zoom-in; }
